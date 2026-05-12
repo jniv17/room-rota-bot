@@ -1,0 +1,34 @@
+name: Room Rota Notification
+
+on:
+  schedule:
+    # Runs at 6am AND 7am UTC every Wed/Thu/Fri
+    # Script checks UK time internally — only sends at 7am UK
+    # This dual schedule handles BST (summer) and GMT (winter) automatically
+    - cron: '0 6 * * 3,4,5'
+    - cron: '0 7 * * 3,4,5'
+  
+  # Manual trigger for testing anytime
+  workflow_dispatch:
+
+jobs:
+  send-rota-link:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Send rota notification
+        run: python rota_bot.py
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
