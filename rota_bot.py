@@ -71,15 +71,21 @@ def main():
     print(f"UK time: {uk_now.isoformat()}")
     print(f"Day: {uk_now.strftime('%A')} | Hour: {uk_now.hour}")
 
-    # Gate: only run at 7am UK (dual cron at 6+7 UTC covers DST)
-    if uk_now.hour != 7:
-        print(f"Hour is {uk_now.hour}, not 7. Skipping (DST guard).")
-        return
+    # Manual test runs bypass time/day gates
+    force = os.environ.get("FORCE_SEND", "false").lower() == "true"
+    
+    if force:
+        print("FORCE_SEND=true — bypassing time/day gates (manual test)")
+    else:
+        # Gate: only run at 7am UK (dual cron at 6+7 UTC covers DST)
+        if uk_now.hour != 7:
+            print(f"Hour is {uk_now.hour}, not 7. Skipping (DST guard).")
+            return
 
-    # Gate: only clinic days (Wed=2, Thu=3, Fri=4)
-    if uk_now.weekday() not in (2, 3, 4):
-        print(f"Today is {uk_now.strftime('%A')}, not a clinic day. Skipping.")
-        return
+        # Gate: only clinic days (Wed=2, Thu=3, Fri=4)
+        if uk_now.weekday() not in (2, 3, 4):
+            print(f"Today is {uk_now.strftime('%A')}, not a clinic day. Skipping.")
+            return
 
     # Build URL and send
     url, day_name, date_str = build_rota_url(uk_now)
