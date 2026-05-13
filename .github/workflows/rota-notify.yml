@@ -2,19 +2,23 @@ name: Room Rota Notification
 
 on:
   schedule:
-    # Runs at 6am AND 7am UTC every Wed/Thu/Fri
-    # Script checks UK time internally — only sends at 7am UK
-    # This dual schedule handles BST (summer) and GMT (winter) automatically
+    # GitHub Actions free tier delays scheduled runs unpredictably.
+    # Running every 15 mins between 5:45-7:15 UTC covers 6:45-8:15 BST.
+    # Script checks UK time internally — only fires the message at 7am UK.
+    - cron: '45 5 * * 3,4,5'
     - cron: '0 6 * * 3,4,5'
+    - cron: '15 6 * * 3,4,5'
+    - cron: '30 6 * * 3,4,5'
+    - cron: '45 6 * * 3,4,5'
     - cron: '0 7 * * 3,4,5'
-  
-  # Manual trigger for testing anytime
+    - cron: '15 7 * * 3,4,5'
+
   workflow_dispatch:
 
 jobs:
   send-rota-link:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -32,4 +36,5 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SHEET_CSV_URL: ${{ secrets.SHEET_CSV_URL }}
           FORCE_SEND: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
