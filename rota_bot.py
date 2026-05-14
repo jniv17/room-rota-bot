@@ -17,7 +17,7 @@ DOCS_BASE       = "Shared%20Documents/General"
 
 COL_NAME    = "Full Name"
 COL_DAYS    = "Working Days"
-COL_CHAT_ID = "Telegram Chat ID"
+COL_CHAT_ID = "Your Telegram Chat ID"
 
 
 def build_rota_urls(dt):
