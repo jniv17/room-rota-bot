@@ -1,31 +1,29 @@
 /**
  * SLPRotaSlavebot — Cloudflare Worker
- * Cron: 7am UK time Wed/Thu/Fri → sends rota to all registered users
- * Webhook: responds instantly when you message the bot
+ * Cron: 7am UK time Mon-Fri → sends rota to users registered for that day
+ * Webhook: responds to messages with smart date parsing
  *
- * Environment variables (Cloudflare Worker → Settings → Variables):
+ * Environment variables:
  *   TELEGRAM_BOT_TOKEN  — bot token from BotFather
- *   ALLOWED_CHAT_IDS    — comma-separated chat IDs e.g. "123456,789012"
- *   SHEET_CSV_URL       — Google Sheet CSV export URL (optional, multi-user)
+ *   ALLOWED_CHAT_IDS    — comma-separated chat IDs
+ *   SHEET_CSV_URL       — Google Sheet CSV export URL
  */
 
 const SHAREPOINT_SITE = "https://nhs.sharepoint.com/sites/msteams_16ddac";
 const DOCS_BASE       = "Shared%20Documents/General";
+const EM_DASH         = "%E2%80%93";
+const SPACE           = "%20";
 
-// URL-encoded characters for filename separators
-const EM_DASH   = "%E2%80%93";  // – (what the rota files actually use)
-const HYPHEN    = "-";
-const SPACE     = "%20";
+const DAY_NAMES = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
 
-// ── UK date/time + URL builder ───────────────────────────────────────
-function getUKDateTime() {
-  const now   = new Date();
+// ── UK date/time for a given Date object ─────────────────────────────
+function getUKDateTime(forDate = new Date()) {
   const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Europe/London",
     year: "numeric", month: "2-digit", day: "2-digit",
     weekday: "long", hour: "2-digit", hour12: false,
-  }).formatToParts(now);
+  }).formatToParts(forDate);
 
   const get  = (type) => parts.find(p => p.type === type)?.value ?? "";
   const DAY  = get("weekday").toUpperCase();
@@ -34,32 +32,83 @@ function getUKDateTime() {
   const mon  = get("month");
   const year = get("year");
   const date = `${day}.${mon}.${year}`;
+  const hour = parseInt(get("hour"), 10);
 
   const folder = `${SHAREPOINT_SITE}/${DOCS_BASE}/${year}%20Room%20Rota`;
-  const isClinicDay = ["WEDNESDAY","THURSDAY","FRIDAY"].includes(DAY);
+  const isWeekday = !["SATURDAY","SUNDAY"].includes(DAY);
 
-  // Variants in order of likelihood based on observed files
-  // THURSDAY – 14.05.2026.docx  (em dash — most common)
-  // WEDNESDAY 13.05.2026.docx   (space, no separator)
-  // THURSDAY - 14.05.2026.docx  (hyphen)
   const variants = [
     { label: `${DAY} \u2013 ${date}`, url: `${folder}/${DAY}${SPACE}${EM_DASH}${SPACE}${date}.docx` },
     { label: `${DAY} ${date}`,        url: `${folder}/${DAY}${SPACE}${date}.docx` },
-    { label: `${DAY} - ${date}`,      url: `${folder}/${DAY}${SPACE}${HYPHEN}${SPACE}${date}.docx` },
+    { label: `${DAY} - ${date}`,      url: `${folder}/${DAY}${SPACE}-${SPACE}${date}.docx` },
     { label: `${Day} \u2013 ${date}`, url: `${folder}/${Day}${SPACE}${EM_DASH}${SPACE}${date}.docx` },
   ];
 
-  return { variants, folder, DAY, date, year, isClinicDay };
+  return { variants, folder, DAY, Day, date, year, hour, isWeekday };
+}
+
+
+// ── Smart date parser ────────────────────────────────────────────────
+// Works out which date the user is asking about from their message text
+function parseDateFromMessage(text) {
+  const lower = text.toLowerCase().trim();
+  const now   = new Date();
+
+  // Get current UK date info
+  const ukParts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/London",
+    weekday: "long",
+  }).formatToParts(now);
+  const todayName = ukParts.find(p => p.type === "weekday")?.value ?? "";
+  const todayIdx  = DAY_NAMES.findIndex(d => d.toLowerCase() === todayName.toLowerCase());
+
+  // "tomorrow"
+  if (lower.includes("tomorrow")) {
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    // Skip to Monday if tomorrow is Saturday or Sunday
+    const tIdx = tomorrow.getDay();
+    if (tIdx === 6) tomorrow.setDate(tomorrow.getDate() + 2);
+    if (tIdx === 0) tomorrow.setDate(tomorrow.getDate() + 1);
+    return { date: tomorrow, label: "tomorrow" };
+  }
+
+  // "next week" → next Monday
+  if (lower.includes("next week")) {
+    const nextMon = new Date(now);
+    const daysUntilMon = (8 - now.getDay()) % 7 || 7;
+    nextMon.setDate(nextMon.getDate() + daysUntilMon);
+    return { date: nextMon, label: "next Monday" };
+  }
+
+  // Day name e.g. "wednesday", "friday"
+  for (let i = 0; i < DAY_NAMES.length; i++) {
+    if (lower.includes(DAY_NAMES[i].toLowerCase())) {
+      const target = new Date(now);
+      let diff = i - todayIdx;
+      if (diff <= 0) diff += 7; // always next occurrence
+      target.setDate(target.getDate() + diff);
+      return { date: target, label: DAY_NAMES[i] };
+    }
+  }
+
+  // "today" or anything else → today
+  return { date: now, label: "today" };
 }
 
 
 // ── Message builder ──────────────────────────────────────────────────
-function buildMessage(DAY, date, variants, folder, isClinicDay) {
-  if (!isClinicDay) {
-    return `\u{1F4CB} <b>${DAY} ${date}</b>\n\nNo clinic today \u2014 next clinic days are Wednesday, Thursday, Friday.`;
+function buildMessage(DAY, date, variants, folder, isWeekday, requestedLabel) {
+  const dayLine = requestedLabel && requestedLabel !== "today"
+    ? `\u{1F4CB} <b>${DAY} ${date}</b> (${requestedLabel})`
+    : `\u{1F4CB} <b>${DAY} ${date}</b>`;
+
+  if (!isWeekday) {
+    return `${dayLine}\n\nNo rota \u2014 that\u2019s a weekend.`;
   }
+
   const lines = [
-    `\u{1F4CB} <b>${DAY} ${date}</b>`,
+    dayLine,
     ``,
     `<a href="${folder}">\u{1F4C1} Open rota folder</a>`,
     ``,
@@ -88,8 +137,8 @@ async function sendMessage(token, chatId, text) {
 }
 
 
-// ── Google Sheet users ────────────────────────────────────────────────
-async function getUsersWorkingToday(sheetCsvUrl, todayName) {
+// ── Google Sheet: get users working on a given day name ───────────────
+async function getUsersWorkingOn(sheetCsvUrl, dayName) {
   try {
     const resp    = await fetch(sheetCsvUrl);
     const text    = await resp.text();
@@ -105,9 +154,13 @@ async function getUsersWorkingToday(sheetCsvUrl, todayName) {
       .map(line => {
         const cols  = line.match(/(".*?"|[^,]+)(?=,|$)/g) || [];
         const clean = cols.map(c => c.replace(/^"|"$/g, "").trim());
-        return { name: clean[nameIdx] ?? "", days: clean[daysIdx] ?? "", chatId: clean[chatIdx] ?? "" };
+        return {
+          name:   clean[nameIdx] ?? "",
+          days:   clean[daysIdx] ?? "",
+          chatId: clean[chatIdx] ?? "",
+        };
       })
-      .filter(u => u.chatId && u.days.includes(todayName));
+      .filter(u => u.chatId && u.days.includes(dayName));
   } catch (err) {
     console.error("Sheet fetch error:", err);
     return [];
@@ -115,30 +168,40 @@ async function getUsersWorkingToday(sheetCsvUrl, todayName) {
 }
 
 
-// ── Scheduled 7am send ────────────────────────────────────────────────
+// ── Scheduled 7am send (Mon–Fri) ─────────────────────────────────────
 async function handleScheduled(env) {
-  const { variants, folder, DAY, date, isClinicDay } = getUKDateTime();
-  if (!isClinicDay) { console.log(`Not a clinic day (${DAY})`); return; }
+  if (!env.SHEET_CSV_URL) {
+    console.log("No SHEET_CSV_URL set — skipping scheduled send.");
+    return;
+  }
 
-  const token   = env.TELEGRAM_BOT_TOKEN;
-  const message = buildMessage(DAY, date, variants, folder, true);
-  console.log(`Sending 7am rota: ${DAY} ${date}`);
+  const { variants, folder, DAY, date, isWeekday } = getUKDateTime();
 
-  if (env.SHEET_CSV_URL) {
-    const todayReadable = DAY.charAt(0) + DAY.slice(1).toLowerCase();
-    const users = await getUsersWorkingToday(env.SHEET_CSV_URL, todayReadable);
-    for (const u of users) {
-      await sendMessage(token, u.chatId, message);
-      console.log(`  sent to ${u.name}`);
-    }
-  } else {
-    const ids = (env.ALLOWED_CHAT_IDS || "").split(",").map(s => s.trim()).filter(Boolean);
-    for (const id of ids) await sendMessage(token, id, message);
+  if (!isWeekday) {
+    console.log(`Weekend (${DAY}) — skipping.`);
+    return;
+  }
+
+  // Readable day name for Sheet lookup e.g. "Thursday"
+  const dayReadable = DAY.charAt(0) + DAY.slice(1).toLowerCase();
+  const users       = await getUsersWorkingOn(env.SHEET_CSV_URL, dayReadable);
+
+  console.log(`${DAY} ${date} — ${users.length} user(s) registered for today.`);
+
+  if (!users.length) {
+    console.log("Nobody registered for today — nothing to send.");
+    return;
+  }
+
+  const message = buildMessage(DAY, date, variants, folder, true, null);
+  for (const u of users) {
+    await sendMessage(env.TELEGRAM_BOT_TOKEN, u.chatId, message);
+    console.log(`  \u2713 ${u.name}`);
   }
 }
 
 
-// ── Webhook: respond to messages ──────────────────────────────────────
+// ── Webhook: respond to incoming messages ────────────────────────────
 async function handleWebhook(request, env) {
   let body;
   try { body = await request.json(); }
@@ -156,8 +219,14 @@ async function handleWebhook(request, env) {
     return new Response("OK", { status: 200 });
   }
 
-  const { variants, folder, DAY, date, isClinicDay } = getUKDateTime();
-  await sendMessage(token, chatId, buildMessage(DAY, date, variants, folder, isClinicDay));
+  // Parse what date they're asking about
+  const userText = message.text || "";
+  const { date: targetDate, label } = parseDateFromMessage(userText);
+  const { variants, folder, DAY, date, isWeekday } = getUKDateTime(targetDate);
+
+  const text = buildMessage(DAY, date, variants, folder, isWeekday, label);
+  await sendMessage(token, chatId, text);
+
   return new Response("OK", { status: 200 });
 }
 
