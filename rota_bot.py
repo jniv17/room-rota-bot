@@ -52,8 +52,12 @@ def get_users_from_sheet():
     print("Fetching users from Google Sheet...")
     resp = requests.get(SHEET_CSV_URL, timeout=30)
     resp.raise_for_status()
-    users = list(csv.DictReader(io.StringIO(resp.text)))
+    reader = csv.DictReader(io.StringIO(resp.text))
+    # Strip whitespace from all column headers
+    reader.fieldnames = [f.strip() for f in reader.fieldnames]
+    users = list(reader)
     print(f"  {len(users)} registered user(s).")
+    print(f"  Columns found: {reader.fieldnames}")
     return users
 
 
