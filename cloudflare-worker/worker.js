@@ -215,7 +215,14 @@ async function handleWebhook(request, env) {
   const allowed = (env.ALLOWED_CHAT_IDS || "").split(",").map(s => s.trim());
 
   if (!allowed.includes(chatId)) {
-    console.log(`Blocked chat_id: ${chatId}`);
+    console.log(`Unknown chat_id: ${chatId} — sending signup instructions`);
+    await sendMessage(token, chatId,
+      `👋 <b>Hi! I'm the SLP Clinic Rota Bot.</b>\n\n` +
+      `I send your room rota to your phone automatically every morning.\n\n` +
+      `To sign up, follow the simple steps here:\n` +
+      `<a href="https://jniv17.github.io/room-rota-bot">👉 Tap to set up notifications</a>\n\n` +
+      `It takes about 3 minutes and you only need to do it once.`
+    );
     return new Response("OK", { status: 200 });
   }
 
