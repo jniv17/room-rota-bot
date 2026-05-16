@@ -214,7 +214,16 @@ async function handleWebhook(request, env) {
   const token   = env.TELEGRAM_BOT_TOKEN;
   const allowed = (env.ALLOWED_CHAT_IDS || "").split(",").map(s => s.trim());
 
-  if (!allowed.includes(chatId)) {
+  // Check ALLOWED_CHAT_IDS first, then fall back to Sheet
+  let isAuthorised = allowed.includes(chatId);
+
+  if (!isAuthorised && env.SHEET_CSV_URL) {
+    const resp    = await fetch(env.SHEET_CSV_URL);
+    const text    = await resp.text();
+    isAuthorised = text.includes(chatId);
+  }
+
+  if (!isAuthorised) {
     console.log(`Unknown chat_id: ${chatId} — sending signup instructions`);
     await sendMessage(token, chatId,
       `👋 <b>Hi! I'm the SLP Clinic Rota Bot.</b>\n\n` +
