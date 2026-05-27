@@ -2,6 +2,8 @@
  * SLPRotaSlavebot — Cloudflare Worker
  * Cron: 7am UK time Mon-Fri → sends rota to users registered for that day
  * Webhook: responds to messages with smart date parsing
+ * 
+ * Fallback: If scheduled send misses, the first webhook call of the day triggers it
  *
  * Environment variables:
  *   TELEGRAM_BOT_TOKEN  — bot token from BotFather
@@ -168,6 +170,24 @@ async function getUsersWorkingOn(sheetCsvUrl, dayName) {
 }
 
 
+// ── Get today's date in YYYY-MM-DD format (UK timezone) ───────────────
+function getTodayDateString() {
+  const now = new Date();
+  const ukParts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/London",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  
+  const year = ukParts.find(p => p.type === "year")?.value;
+  const month = ukParts.find(p => p.type === "month")?.value;
+  const day = ukParts.find(p => p.type === "day")?.value;
+  
+  return `${year}-${month}-${day}`;
+}
+
+
 // ── Scheduled 7am send (Mon–Fri) ─────────────────────────────────────
 async function handleScheduled(env) {
   if (!env.SHEET_CSV_URL) {
@@ -194,10 +214,25 @@ async function handleScheduled(env) {
   }
 
   const message = buildMessage(DAY, date, variants, folder, true, null);
+  let sentCount = 0;
   for (const u of users) {
     await sendMessage(env.TELEGRAM_BOT_TOKEN, u.chatId, message);
     console.log(`  \u2713 ${u.name}`);
+    sentCount++;
   }
+
+  // Store that we've sent today's scheduled message
+  if (env.ROTA_STATE) {
+    try {
+      const state = env.ROTA_STATE.get("lastSentDate");
+      await state.put("lastSentDate", getTodayDateString());
+      console.log("✓ Marked today's scheduled send as complete");
+    } catch (err) {
+      console.error("Failed to store last sent date:", err);
+    }
+  }
+
+  return sentCount;
 }
 
 
@@ -233,6 +268,25 @@ async function handleWebhook(request, env) {
       `It takes about 3 minutes and you only need to do it once.`
     );
     return new Response("OK", { status: 200 });
+  }
+
+  // ── FALLBACK: Check if scheduled send has run today ──────────────────
+  // If not, and today is a weekday, trigger it now
+  const { isWeekday: todayIsWeekday } = getUKDateTime();
+  if (todayIsWeekday && env.ROTA_STATE) {
+    try {
+      const state = env.ROTA_STATE.get("lastSentDate");
+      const lastSent = await state.get("lastSentDate");
+      const todayStr = getTodayDateString();
+
+      if (lastSent !== todayStr) {
+        console.log(`⚠️  Scheduled send appears to have missed. Triggering fallback...`);
+        await handleScheduled(env);
+      }
+    } catch (err) {
+      console.error("Error checking last sent date:", err);
+      // On error, don't break the user experience — just continue
+    }
   }
 
   // Parse what date they're asking about
