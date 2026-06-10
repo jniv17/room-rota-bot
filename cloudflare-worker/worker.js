@@ -36,9 +36,6 @@ function getUKDateTime(forDate = new Date()) {
 
   const variants = [
     { label: `${DAY} \u2013 ${date}`, url: `${folder}/${DAY}${SPACE}${EM_DASH}${SPACE}${date}.docx` },
-    { label: `${DAY} ${date}`,        url: `${folder}/${DAY}${SPACE}${date}.docx` },
-    { label: `${DAY} - ${date}`,      url: `${folder}/${DAY}${SPACE}-${SPACE}${date}.docx` },
-    { label: `${Day} \u2013 ${date}`, url: `${folder}/${Day}${SPACE}${EM_DASH}${SPACE}${date}.docx` },
   ];
 
   return { variants, folder, DAY, Day, date, year, isWeekday };
@@ -90,8 +87,11 @@ function buildMessage(DAY, date, variants, folder, isWeekday, requestedLabel) {
 
   if (!isWeekday) return `${dayLine}\n\nNo rota \u2014 that\u2019s a weekend.`;
 
-  const lines = [dayLine, ``, `<a href="${folder}">\u{1F4C1} Open rota folder</a>`, ``, `Try direct links:`];
-  variants.forEach((v, i) => lines.push(`<a href="${v.url}">${i + 1}. ${v.label}</a>`));
+  const lines = [
+    dayLine, ``,
+    `<a href="${folder}">\u{1F4C1} Open rota folder</a>`,
+    `<a href="${variants[0].url}">\u{1F4C4} ${variants[0].label}</a>`,
+  ];
   return lines.join("\n");
 }
 
