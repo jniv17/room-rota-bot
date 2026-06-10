@@ -15,23 +15,14 @@
   }
 
   header {
-    background: #005eb8; /* NHS blue */
+    background: #005eb8;
     color: white;
     padding: 24px 20px 20px;
     text-align: center;
   }
 
-  header h1 {
-    font-size: 1.4rem;
-    font-weight: 700;
-    letter-spacing: -0.3px;
-  }
-
-  header p {
-    margin-top: 6px;
-    font-size: 0.9rem;
-    opacity: 0.85;
-  }
+  header h1 { font-size: 1.4rem; font-weight: 700; }
+  header p { margin-top: 6px; font-size: 0.9rem; opacity: 0.85; }
 
   .container {
     max-width: 540px;
@@ -79,10 +70,7 @@
     flex-shrink: 0;
   }
 
-  .step-title {
-    font-size: 1.05rem;
-    font-weight: 600;
-  }
+  .step-title { font-size: 1.05rem; font-weight: 600; }
 
   .step p {
     font-size: 0.9rem;
@@ -103,6 +91,19 @@
     line-height: 1.5;
   }
 
+  .warning {
+    background: #fff3cd;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 0.9rem;
+    color: #7c5000;
+    margin-top: 12px;
+    line-height: 1.6;
+    border-left: 4px solid #f0a500;
+  }
+
+  .warning strong { display: block; margin-bottom: 4px; font-size: 0.95rem; }
+
   .btn {
     display: block;
     width: 100%;
@@ -119,41 +120,9 @@
   }
 
   .btn:active { opacity: 0.8; }
-
-  .btn-telegram {
-    background: #0088cc;
-    color: white;
-  }
-
-  .btn-form {
-    background: #005eb8;
-    color: white;
-  }
-
-  .btn-app-store {
-    background: #f5f5f5;
-    color: #333;
-    border: 1px solid #ddd;
-    font-size: 0.9rem;
-  }
-
-  .code-box {
-    background: #f0f4f8;
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-family: monospace;
-    font-size: 0.9rem;
-    color: #005eb8;
-    margin-top: 8px;
-    word-break: break-all;
-  }
-
-  .divider {
-    text-align: center;
-    color: #aaa;
-    font-size: 0.8rem;
-    margin: 8px 0;
-  }
+  .btn-telegram { background: #0088cc; color: white; }
+  .btn-form { background: #005eb8; color: white; }
+  .btn-app-store { background: #f5f5f5; color: #333; border: 1px solid #ddd; font-size: 0.9rem; }
 
   .done-box {
     background: #e6f4ea;
@@ -180,6 +149,20 @@
   }
 
   .faq-item strong { color: #1a1a2e; display: block; margin-bottom: 4px; }
+
+  .trust-bar {
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 0.82rem;
+    color: #555;
+    line-height: 1.6;
+    text-align: center;
+  }
+
+  .trust-bar strong { color: #005eb8; }
 </style>
 </head>
 <body>
@@ -192,24 +175,29 @@
 <div class="container">
 
   <div class="intro">
-    On <strong>your clinic days</strong>, you'll automatically receive a message at <strong>7am</strong> with a direct link to that day's room rota. One tap and it opens. Nothing to remember.
+    On <strong>your clinic days</strong>, you'll automatically receive a message at <strong>7am</strong> with a direct link to that day's room rota. One tap and it opens. Nothing else to remember.
+  </div>
+
+  <div class="trust-bar">
+    🔒 <strong>Your information is safe.</strong> This service only stores your name, working days, and a notification ID. It never accesses patient data or any other files. It was set up by Dr Nivern for clinic staff only.
   </div>
 
   <!-- STEP 1 -->
   <div class="step">
     <div class="step-header">
       <div class="step-number">1</div>
-      <div class="step-title">Install Telegram</div>
+      <div class="step-title">Install the Telegram messaging app</div>
     </div>
-    <p>Telegram is a free messaging app — this is how the rota link gets sent to you. If you already have it, skip to step 2.</p>
+    <p>Telegram is a free, secure messaging app — it's how your rota gets sent to your phone. If you already have it, skip to step 2.</p>
+    <p>It is <strong>not</strong> a scam. It does not access your contacts, photos, or any personal data. Many NHS staff use it.</p>
     <a class="btn btn-app-store" href="https://apps.apple.com/app/telegram-messenger/id686449807" target="_blank">
-      📱 Download on iPhone (App Store)
+      📱 iPhone — Download from App Store
     </a>
     <a class="btn btn-app-store" href="https://play.google.com/store/apps/details?id=org.telegram.messenger" target="_blank">
-      📱 Download on Android (Google Play)
+      📱 Android — Download from Google Play
     </a>
     <div class="note">
-      Set up Telegram with your personal mobile number. It takes about 2 minutes.
+      Set up Telegram with your mobile number. It takes about 2 minutes. You can delete it later — your rota notifications will still have been set up.
     </div>
   </div>
 
@@ -217,15 +205,19 @@
   <div class="step">
     <div class="step-header">
       <div class="step-number">2</div>
-      <div class="step-title">Find your Telegram ID</div>
+      <div class="step-title">Find your personal notification number</div>
     </div>
-    <p>You need a personal ID number so the bot knows where to send your messages. Here's how to get it:</p>
-    <p><strong>Tap the button below</strong> — it opens a bot called <em>@userinfobot</em> in Telegram. Send it any message (e.g. "hi") and it will instantly reply with your ID number.</p>
+    <p>You need a unique number so the system knows where to send your messages. Here's how to get it:</p>
+    <p><strong>Tap the button below</strong> — it opens a tool called <em>@userinfobot</em> in Telegram. Send it any message (e.g. "hi") and it will instantly reply with your number.</p>
     <a class="btn btn-telegram" href="https://t.me/userinfobot" target="_blank">
       Open @userinfobot in Telegram
     </a>
-    <div class="note">
-      Look for the line that says <strong>Id: 123456789</strong> — write down or screenshot that number. You'll need it in step 4.
+
+    <div class="warning">
+      <strong>⚠️ Important — write this number down before moving on</strong>
+      The reply will contain a line starting with <strong>Id:</strong> followed by your personal number — for example: <strong>Id: 8738780010</strong><br><br>
+      Write that number down now on a piece of paper. You will need it in step 4.<br><br>
+      <em>To copy it on your phone: press and hold on the number, then tap Copy.</em>
     </div>
   </div>
 
@@ -233,13 +225,15 @@
   <div class="step">
     <div class="step-header">
       <div class="step-number">3</div>
-      <div class="step-title">Start the rota bot</div>
+      <div class="step-title">Register with the rota service</div>
     </div>
-    <p>You need to start a conversation with the rota bot once so it's allowed to message you.</p>
+    <p>Tap the button below to open the rota service in Telegram, then tap <strong>Start</strong>. This lets the service send messages to your phone.</p>
     <a class="btn btn-telegram" href="https://t.me/SLPRotaSlavebot" target="_blank">
-      Open @SLPRotaSlavebot in Telegram
+      Open the Rota Notification Service
     </a>
-    <p style="margin-top:10px;">Once it opens, tap <strong>Start</strong>. That's it — you don't need to send anything.</p>
+    <div class="note">
+      Once it opens, tap <strong>Start</strong> at the bottom. You may see a message — you can ignore it and move on to step 4.
+    </div>
   </div>
 
   <!-- STEP 4 -->
@@ -248,18 +242,21 @@
       <div class="step-number">4</div>
       <div class="step-title">Sign up — takes 1 minute</div>
     </div>
-    <p>Fill in the form below with your name, which days you work, and the ID number you got in step 2.</p>
+    <p>Fill in the short form below. You will need:</p>
+    <p>✅ Your name<br>
+       ✅ Which days you work<br>
+       ✅ The number you wrote down in step 2</p>
     <a class="btn btn-form" href="https://forms.gle/h9wkMq99sDLe5h1H7" target="_blank">
-      Open Signup Form
+      Open the Sign-Up Form
     </a>
     <div class="note">
-      You only need to do this once. If your working days change, fill in the form again and let the practice manager know.
+      You only need to do this once. If your working days change, fill in the form again or speak to Dr Nivern.
     </div>
   </div>
 
   <div class="done-box">
     <div class="emoji">✅</div>
-    <p>That's everything. You'll receive your first rota message at <strong>7am on your next clinic day</strong>. If something doesn't work, speak to my Master.</p>
+    <p>That's everything. You'll receive your first rota message at <strong>7am on your next clinic day</strong>.<br><br>If something doesn't work, contact Dr Nivern.</p>
   </div>
 
   <!-- FAQ -->
@@ -267,28 +264,33 @@
     <h2>Common questions</h2>
 
     <div class="faq-item">
-      <strong>Is this secure?</strong>
-      The bot only sends you a link to the room rota — the same document you'd open manually in Teams. It doesn't contain any patient information and never accesses anything else.
+      <strong>Is this safe? Will it steal my information?</strong>
+      No. This service was set up by Dr Nivern specifically for clinic staff. It only stores your name, working days, and notification number. It never accesses patient data, your contacts, photos, or anything else on your phone.
     </div>
 
     <div class="faq-item">
-      <strong>What if I miss the message?</strong>
-      The link stays in your Telegram chat and works all day. You can tap it any time, talk to it, it will respond.
+      <strong>Do I have to keep Telegram installed?</strong>
+      Yes — Telegram is how your rota message is delivered to your phone. You can keep it in a folder if you prefer. It takes up very little space.
     </div>
 
     <div class="faq-item">
-      <strong>What if my rota days change?</strong>
-      Fill in the signup form again with your updated days and let the practice manager know so they can update your record.
+      <strong>What if I miss the 7am message?</strong>
+      The link stays in your Telegram messages all day. You can also send any message to the rota service at any time and it will reply with today's rota instantly.
     </div>
 
     <div class="faq-item">
-      <strong>Do I have to use Telegram?</strong>
-      For now, yes — it's the simplest way to get a reliable notification with a clickable link. Most people find it quick to set up.
+      <strong>The link opened but asked me to sign in</strong>
+      Use your normal NHS Microsoft email and password — the same one you use for Microsoft Teams at work. If you're already logged into the Teams app on your phone, it may open automatically.
     </div>
 
     <div class="faq-item">
-      <strong>The link opened but showed an error</strong>
-      Let my Master know and it'll be fixed as it pleases them.
+      <strong>What if my working days change?</strong>
+      Fill in the sign-up form again with your updated days and let Dr Nivern know.
+    </div>
+
+    <div class="faq-item">
+      <strong>I can't find the number in step 2</strong>
+      When @userinfobot replies, look for the line that starts with <strong>Id:</strong> — it will be followed by a string of numbers, for example <strong>Id: 8738780010</strong>. That whole number after the colon is what you need.
     </div>
   </div>
 
