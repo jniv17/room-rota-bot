@@ -1,6 +1,6 @@
 # Room Rota Bot 📋
 
-Sends a Telegram message at 7am UK time every **Wednesday, Thursday, Friday** with a clickable link to the day's room rota on SharePoint.
+Sends a Telegram message at 7am UK time every **Working day** with a clickable link to the day's room rota on SharePoint.
 
 ## How it works
 
