@@ -224,12 +224,13 @@ async function handleWebhook(request, env) {
   }
 
   if (!isAuthorised) {
+    const prefillUrl = `https://docs.google.com/forms/d/e/1FAIpQLScxwjgcpv_Wu4lZdYbvSfs-pB4TmUJ5ha6n5403b2Je10Xdug/viewform?usp=pp_url&entry.418364204=${chatId}`;
     await sendMessage(token, chatId,
-      `\u{1F44B} <b>Hi! I\u2019m the SLP Clinic Rota Bot.</b>\n\n` +
-      `I send your room rota to your phone automatically every morning.\n\n` +
-      `To sign up, follow the simple steps here:\n` +
-      `<a href="https://jniv17.github.io/room-rota-bot">\u{1F449} Tap to set up notifications</a>\n\n` +
-      `It takes about 3 minutes and you only need to do it once.`
+      `\u{1F44B} <b>Hi! Welcome to SLP Clinic Rota Notifications.</b>\n\n` +
+      `I send your room rota to your phone automatically at 7am on your clinic days.\n\n` +
+      `<b>To sign up, tap the link below.</b> Your ID number is already filled in for you \u2014 you just need to add your name and working days:\n\n` +
+      `<a href="${prefillUrl}">\u{1F4DD} Complete your sign-up (1 minute)</a>\n\n` +
+      `Set up by Dr Nivern for clinic staff only.`
     );
     return new Response("OK", { status: 200 });
   }
