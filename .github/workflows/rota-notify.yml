@@ -1,17 +1,19 @@
 name: Room Rota Notification
 
 on:
-  schedule:
-    # GitHub Actions free tier delays scheduled runs unpredictably.
-    # Running every 15 mins between 5:45-7:15 UTC covers 6:45-8:15 BST.
-    # Script checks UK time internally — only fires the message at 7am UK.
-    - cron: '45 5 * * 3,4,5'
-    - cron: '0 6 * * 3,4,5'
-    - cron: '15 6 * * 3,4,5'
-    - cron: '30 6 * * 3,4,5'
-    - cron: '45 6 * * 3,4,5'
-    - cron: '0 7 * * 3,4,5'
-    - cron: '15 7 * * 3,4,5'
+  # Scheduled sending has moved to the Cloudflare Worker (cloudflare-worker/worker.js —
+  # SLPRotaSlavebot), which also handles on-demand queries and self-service sign-up.
+  # Leaving this schedule enabled here as well would double-send every clinic morning.
+  # Kept as workflow_dispatch only, for manual testing / emergency fallback.
+  #
+  # schedule:
+  #   - cron: '45 5 * * 3,4,5'
+  #   - cron: '0 6 * * 3,4,5'
+  #   - cron: '15 6 * * 3,4,5'
+  #   - cron: '30 6 * * 3,4,5'
+  #   - cron: '45 6 * * 3,4,5'
+  #   - cron: '0 7 * * 3,4,5'
+  #   - cron: '15 7 * * 3,4,5'
 
   workflow_dispatch:
 
