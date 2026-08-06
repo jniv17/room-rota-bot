@@ -3,4 +3,6 @@ main = "cloudflare-worker/worker.js"
 compatibility_date = "2024-01-01"
 
 [triggers]
-crons = ["0 6 * * MON-FRI"]
+# 6am UTC covers 7am BST (Mar-Oct), 7am UTC covers 7am GMT (Oct-Mar).
+# worker.js only sends on whichever trigger actually lands on 7am UK time.
+crons = ["0 6 * * MON-FRI", "0 7 * * MON-FRI"]

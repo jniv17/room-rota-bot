@@ -1,6 +1,7 @@
 /**
  * SLPRotaSlavebot — Cloudflare Worker
- * Cron: 7am UK time Mon-Fri → sends rota to users registered for that day
+ * Cron: fires at 6am and 7am UTC Mon-Fri (covers BST and GMT); handleScheduled
+ *       only sends on the trigger that lands on 7am UK time.
  * Webhook: responds to messages with smart date parsing
  *
  * Environment variables:
@@ -30,6 +31,7 @@ function getUKDateTime(forDate = new Date()) {
   const day  = get("day");
   const mon  = get("month");
   const year = get("year");
+  const hour = parseInt(get("hour"), 10);
   const date = `${day}.${mon}.${year}`;
   const folder = `${SHAREPOINT_SITE}/${DOCS_BASE}/${year}%20Room%20Rota`;
   const isWeekday = !["SATURDAY","SUNDAY"].includes(DAY);
@@ -38,7 +40,7 @@ function getUKDateTime(forDate = new Date()) {
     { label: `${DAY} \u2013 ${date}`, url: `${folder}/${DAY}${SPACE}${EM_DASH}${SPACE}${date}.docx` },
   ];
 
-  return { variants, folder, DAY, Day, date, year, isWeekday };
+  return { variants, folder, DAY, Day, date, year, hour, isWeekday };
 }
 
 
@@ -149,7 +151,11 @@ async function getUsersWorkingOn(sheetCsvUrl, dayName) {
 
 // ── Scheduled 7am send ────────────────────────────────────────────────
 async function handleScheduled(env) {
-  const { variants, folder, DAY, date, isWeekday } = getUKDateTime();
+  const { variants, folder, DAY, date, hour, isWeekday } = getUKDateTime();
+
+  // wrangler.toml fires this at both 6am and 7am UTC to cover GMT/BST —
+  // only the trigger that actually lands on 7am UK time should send.
+  if (hour !== 7) { console.log(`UK hour is ${hour}, not 7am. Skipping.`); return; }
 
   if (!isWeekday) { console.log(`Weekend (${DAY}) — skipping.`); return; }
 
