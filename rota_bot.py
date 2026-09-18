@@ -1,7 +1,6 @@
 """
-Room Rota Telegram Notifier — Multi-user, dual-link version
-Sends three links: space format, dash format, and folder fallback.
-Logs filename pattern for tracking naming inconsistencies.
+Room Rota Telegram Notifier — Multi-user version
+Sends the direct rota link plus a folder fallback.
 """
 
 import os, sys, csv, io, requests
@@ -27,23 +26,20 @@ def build_rota_urls(dt):
     folder    = f"{year}%20Room%20Rota"
     folder_url = f"{SHAREPOINT_SITE}/{DOCS_BASE}/{folder}"
 
-    # Track both known naming patterns
-    url_space = f"{folder_url}/{day_name}%20{date_str}.docx"
-    url_dash  = f"{folder_url}/{day_name}%20-%20{date_str}.docx"
+    url = f"{folder_url}/{day_name}%20{date_str}.docx"
 
     print(f"  Day / Date : {day_name} {date_str}")
     print(f"  Folder     : {year} Room Rota")
-    print(f"  Pattern A  : {day_name} {date_str}.docx")
-    print(f"  Pattern B  : {day_name} - {date_str}.docx")
+    print(f"  Pattern    : {day_name} {date_str}.docx")
     print(f"  Folder URL : {folder_url}")
 
-    return url_space, url_dash, folder_url, day_name, date_str
+    return url, folder_url, day_name, date_str
 
 
-def build_message(day_name, date_str, url_space, url_dash, folder_url):
+def build_message(day_name, date_str, url, folder_url):
     return (
         f"📋 <b>{day_name} {date_str}</b>\n\n"
-        f'<a href="{url_space}">Open Room Rota</a>  ·  <a href="{url_dash}">Alt link</a>\n'
+        f'<a href="{url}">Open Room Rota</a>\n'
         f'<a href="{folder_url}">📁 Browse rota folder</a>'
     )
 
@@ -103,9 +99,9 @@ def main():
             return
 
     print("-" * 50)
-    url_space, url_dash, folder_url, day_name, date_str = build_rota_urls(uk_now)
+    url, folder_url, day_name, date_str = build_rota_urls(uk_now)
     today_name = uk_now.strftime("%A")
-    message    = build_message(day_name, date_str, url_space, url_dash, folder_url)
+    message    = build_message(day_name, date_str, url, folder_url)
     print("-" * 50)
 
     if SHEET_CSV_URL:

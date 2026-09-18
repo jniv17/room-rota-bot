@@ -12,7 +12,6 @@
 
 const SHAREPOINT_SITE = "https://nhs.sharepoint.com/sites/msteams_16ddac";
 const DOCS_BASE       = "Shared%20Documents/General";
-const EM_DASH         = "%E2%80%93";
 const SPACE           = "%20";
 const DAY_NAMES = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
@@ -37,7 +36,7 @@ function getUKDateTime(forDate = new Date()) {
   const isWeekday = !["SATURDAY","SUNDAY"].includes(DAY);
 
   const variants = [
-    { label: `${DAY} \u2013 ${date}`, url: `${folder}/${DAY}${SPACE}${EM_DASH}${SPACE}${date}.docx` },
+    { label: `${DAY} ${date}`, url: `${folder}/${DAY}${SPACE}${date}.docx` },
   ];
 
   return { variants, folder, DAY, Day, date, year, hour, isWeekday };
