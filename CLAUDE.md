@@ -2,7 +2,7 @@
 
 Telegram notification service that sends SLP clinic staff a link to that day's room rota at 7am UK time on their working days (Mon to Fri). Owner: Dr Josh Nivern (GP). Josh is non-technical but hands-on: explain changes in plain English, keep the bot simple, never add infrastructure that is not needed.
 
-State below is accurate as of `main` @ `454a293` (18 Sep 2026, "Update rota filename format to match new supervisor convention").
+State below is accurate as of 15 Oct 2026 (two-digit-year filename fix).
 
 ## Hard rules
 
@@ -64,8 +64,8 @@ Non-secret identifiers:
 
 SharePoint:
 - Folder: `https://nhs.sharepoint.com/sites/msteams_16ddac/Shared%20Documents/General/{YEAR}%20Room%20Rota`
-- Current filename convention (since Sep 2026): `{DAY} {DD}.{MM}.{YYYY}.docx`, day in capitals, single space, no dash. e.g. `THURSDAY 15.10.2026.docx`
-- History: earlier files mixed en dash, hyphen and space separators. The worker now builds the single no-dash link only.
+- Current filename convention (since Oct 2026): `{DAY} {DD}.{MM}.{YY}.docx`, day in capitals, single space, no dash, TWO-digit year. e.g. `THURSDAY 15.10.26.docx`. Folder name keeps the four-digit year (`2026 Room Rota`).
+- History: the supervisor changes the convention without notice. Earlier files used en dash, hyphen, space, and four-digit years (`TUESDAY 13.10.2026.docx`). The bot can't check which file exists (SharePoint needs NHS login), so it builds one direct link plus the folder link as a fallback. If the direct link 404s, ask Josh for a screenshot of the folder and match it.
 - NHS sign-in cannot be bypassed. Users who have not completed NHS Microsoft sign-in on their phone will see a login page.
 
 ## Current behaviour (worker.js)

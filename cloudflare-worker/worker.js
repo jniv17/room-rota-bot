@@ -35,8 +35,11 @@ function getUKDateTime(forDate = new Date()) {
   const folder = `${SHAREPOINT_SITE}/${DOCS_BASE}/${year}%20Room%20Rota`;
   const isWeekday = !["SATURDAY","SUNDAY"].includes(DAY);
 
+  // Filenames use a two-digit year since Oct 2026, e.g. "THURSDAY 15.10.26.docx".
+  // The folder name keeps the four-digit year ("2026 Room Rota").
+  const fileDate = `${day}.${mon}.${year.slice(-2)}`;
   const variants = [
-    { label: `${DAY} ${date}`, url: `${folder}/${DAY}${SPACE}${date}.docx` },
+    { label: `${DAY} ${fileDate}`, url: `${folder}/${DAY}${SPACE}${fileDate}.docx` },
   ];
 
   return { variants, folder, DAY, Day, date, year, hour, isWeekday };
